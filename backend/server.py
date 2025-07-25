@@ -120,7 +120,7 @@ async def create_or_get_profile(profile_data: dict):
 @app.get("/api/players/{wallet_address}")
 async def get_player_profile(wallet_address: str):
     """Get player profile by wallet address"""
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
     
     profile = db.players.find_one({"wallet_address": wallet_address})
