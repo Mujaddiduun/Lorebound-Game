@@ -87,7 +87,7 @@ async def health_check():
 @app.post("/api/players/profile")
 async def create_or_get_profile(profile_data: dict):
     """Create or retrieve player profile"""
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
     
     wallet_address = profile_data.get("wallet_address")
