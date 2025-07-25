@@ -222,11 +222,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "FastAPI server with game endpoints"
-    - "Player profile management"
-    - "Mission system with XP and trait rewards"
     - "React app with Solana wallet integration"
     - "Game interface with profile, missions, and exploration"
+    - "Honeycomb Protocol client integration"
+    - "Mission completion workflow"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
