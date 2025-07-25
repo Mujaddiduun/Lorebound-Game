@@ -179,7 +179,7 @@ async def get_zone_missions(zone: str):
 @app.post("/api/missions/complete")
 async def complete_mission(completion: MissionCompletion):
     """Complete a mission and award XP/traits"""
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
     
     # Get player profile
