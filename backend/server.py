@@ -243,7 +243,7 @@ async def complete_mission(completion: MissionCompletion):
 @app.get("/api/game-state/{wallet_address}")
 async def get_game_state(wallet_address: str):
     """Get current game state for player"""
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
     
     profile = db.players.find_one({"wallet_address": wallet_address})
