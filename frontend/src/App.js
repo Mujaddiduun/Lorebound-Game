@@ -26,8 +26,16 @@ import {
   Zap,
   Shield,
   Crown,
-  Scroll
+  Scroll,
+  Users,
+  Calendar,
+  Sparkles,
+  Gift
 } from 'lucide-react';
+import LoreNFTGallery from './components/LoreNFTGallery';
+import SquadQuestPanel from './components/SquadQuestPanel';
+import ProceduralQuestPanel from './components/ProceduralQuestPanel';
+import EventsPanel from './components/EventsPanel';
 import './App.css';
 
 // Honeycomb client setup
@@ -48,6 +56,8 @@ const GameInterface = () => {
   const [selectedMission, setSelectedMission] = useState(null);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState('');
+  const [activeTab, setActiveTab] = useState('missions');
+  const [showLoreGallery, setShowLoreGallery] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -140,6 +150,13 @@ const GameInterface = () => {
       setSelectedMission(null);
       
       showNotification(`Mission completed! +${result.xp_gained} XP gained!`);
+      
+      // Check for lore NFT unlock
+      if (result.lore_nft_unlocked) {
+        setTimeout(() => {
+          showNotification(`🎉 Lore NFT Unlocked: ${result.lore_nft_unlocked.name}!`);
+        }, 2000);
+      }
     } catch (error) {
       console.error('Error completing mission:', error);
       showNotification(error.message);
@@ -236,6 +253,13 @@ const GameInterface = () => {
                   <Zap className="w-5 h-5 text-blue-400" />
                   <span>{gameState.xp} XP</span>
                 </div>
+                <button
+                  onClick={() => setShowLoreGallery(true)}
+                  className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  <Scroll className="w-5 h-5" />
+                  <span>Lore</span>
+                </button>
               </div>
             )}
             <WalletDisconnectButton className="!bg-red-600/80 !rounded-lg" />
@@ -249,7 +273,31 @@ const GameInterface = () => {
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-6">
+            {/* Tab Navigation */}
+            <div className="flex flex-wrap gap-2 bg-black/40 backdrop-blur-sm rounded-xl p-2 border border-purple-500/20">
+              {[
+                { id: 'missions', label: 'Missions', icon: Trophy },
+                { id: 'procedural', label: 'Procedural', icon: Sparkles },
+                { id: 'squad', label: 'Squad Quests', icon: Users },
+                { id: 'events', label: 'Events', icon: Calendar }
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                    activeTab === id
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-purple-600/20'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profile Panel */}
             <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
@@ -312,6 +360,17 @@ const GameInterface = () => {
                       <span className="text-purple-400 capitalize">{gameState.current_zone.replace('_', ' ')}</span>
                     </div>
                   </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="pt-4 border-t border-purple-500/20">
+                    <button
+                      onClick={() => setShowLoreGallery(true)}
+                      className="w-full bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 text-purple-300 border border-purple-500/20 font-semibold py-2 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                      <Scroll className="w-4 h-4" />
+                      <span>View Lore Collection</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p className="text-gray-400">Loading profile...</p>
@@ -359,94 +418,137 @@ const GameInterface = () => {
                 <p className="text-gray-300 text-sm">
                   Click on quest markers to start missions
                 </p>
+                <div className="mt-2 flex justify-center space-x-4 text-xs text-gray-400">
+                  <span>🟡 Regular Missions</span>
+                  <span>✨ Procedural Quests</span>
+                  <span>👥 Squad Quests</span>
+                </div>
               </div>
             </div>
 
-            {/* Quest Panel */}
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                <Scroll className="w-6 h-6 mr-2 text-yellow-400" />
-                Available Quests
-              </h2>
-              
-              {selectedMission ? (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-purple-400">{selectedMission.name}</h3>
-                    <p className="text-gray-300 mt-2">{selectedMission.description}</p>
-                  </div>
+            {/* Dynamic Content Panel */}
+            <div>
+              {activeTab === 'missions' && (
+                <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                    <Scroll className="w-6 h-6 mr-2 text-yellow-400" />
+                    Available Quests
+                  </h2>
                   
-                  <div className="bg-purple-600/20 rounded-lg p-4">
-                    <h4 className="font-semibold text-white mb-2">Rewards:</h4>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-300">
-                        <Zap className="w-4 h-4 inline mr-1 text-blue-400" />
-                        {selectedMission.xp_reward} XP
-                      </p>
-                      {Object.entries(selectedMission.trait_rewards || {}).map(([trait, value]) => (
-                        <p key={trait} className="text-sm text-gray-300">
-                          {getTraitIcon(trait)}
-                          <span className="ml-1 capitalize">{trait} +{value}</span>
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => completeMission(selectedMission.mission_id)}
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition-all duration-300"
-                  >
-                    {loading ? 'Completing...' : 'Complete Mission'}
-                  </button>
-                  
-                  <button
-                    onClick={() => setSelectedMission(null)}
-                    className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition-colors"
-                  >
-                    Back to Quests
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {availableMissions.length > 0 ? (
-                    availableMissions.map((mission) => (
-                      <div
-                        key={mission.mission_id}
-                        className="bg-purple-600/20 rounded-lg p-4 cursor-pointer hover:bg-purple-600/30 transition-colors border border-purple-500/20"
-                        onClick={() => setSelectedMission(mission)}
-                      >
-                        <h3 className="font-semibold text-white">{mission.name}</h3>
-                        <p className="text-sm text-gray-300 mt-1">{mission.description}</p>
-                        <div className="flex items-center mt-2 space-x-4">
-                          <span className="text-xs text-blue-400">
-                            <Zap className="w-3 h-3 inline mr-1" />
-                            {mission.xp_reward} XP
-                          </span>
-                          {Object.keys(mission.trait_rewards || {}).map(trait => (
-                            <span key={trait} className="text-xs text-purple-400 capitalize">
+                  {selectedMission ? (
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-purple-400">{selectedMission.name}</h3>
+                        <p className="text-gray-300 mt-2">{selectedMission.description}</p>
+                      </div>
+                      
+                      <div className="bg-purple-600/20 rounded-lg p-4">
+                        <h4 className="font-semibold text-white mb-2">Rewards:</h4>
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-300">
+                            <Zap className="w-4 h-4 inline mr-1 text-blue-400" />
+                            {selectedMission.xp_reward} XP
+                          </p>
+                          {Object.entries(selectedMission.trait_rewards || {}).map(([trait, value]) => (
+                            <p key={trait} className="text-sm text-gray-300">
                               {getTraitIcon(trait)}
-                              <span className="ml-1">{trait}</span>
-                            </span>
+                              <span className="ml-1 capitalize">{trait} +{value}</span>
+                            </p>
                           ))}
                         </div>
                       </div>
-                    ))
+                      
+                      <button
+                        onClick={() => completeMission(selectedMission.mission_id)}
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                      >
+                        {loading ? 'Completing...' : 'Complete Mission'}
+                      </button>
+                      
+                      <button
+                        onClick={() => setSelectedMission(null)}
+                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition-colors"
+                      >
+                        Back to Quests
+                      </button>
+                    </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <Trophy className="w-12 h-12 mx-auto text-gray-500 mb-4" />
-                      <p className="text-gray-400">All missions completed!</p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        New adventures await in higher zones...
-                      </p>
+                    <div className="space-y-3">
+                      {availableMissions.length > 0 ? (
+                        availableMissions.map((mission) => (
+                          <div
+                            key={mission.mission_id}
+                            className="bg-purple-600/20 rounded-lg p-4 cursor-pointer hover:bg-purple-600/30 transition-colors border border-purple-500/20"
+                            onClick={() => setSelectedMission(mission)}
+                          >
+                            <h3 className="font-semibold text-white">{mission.name}</h3>
+                            <p className="text-sm text-gray-300 mt-1">{mission.description}</p>
+                            <div className="flex items-center mt-2 space-x-4">
+                              <span className="text-xs text-blue-400">
+                                <Zap className="w-3 h-3 inline mr-1" />
+                                {mission.xp_reward} XP
+                              </span>
+                              {Object.keys(mission.trait_rewards || {}).map(trait => (
+                                <span key={trait} className="text-xs text-purple-400 capitalize">
+                                  {getTraitIcon(trait)}
+                                  <span className="ml-1">{trait}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <Trophy className="w-12 h-12 mx-auto text-gray-500 mb-4" />
+                          <p className="text-gray-400">All missions completed!</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            New adventures await in higher zones...
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               )}
+
+              {activeTab === 'procedural' && (
+                <ProceduralQuestPanel
+                  wallet={wallet}
+                  backendUrl={backendUrl}
+                  onNotification={showNotification}
+                  onMissionComplete={initializePlayer}
+                />
+              )}
+
+              {activeTab === 'squad' && (
+                <SquadQuestPanel
+                  wallet={wallet}
+                  backendUrl={backendUrl}
+                  onNotification={showNotification}
+                />
+              )}
+
+              {activeTab === 'events' && (
+                <EventsPanel
+                  wallet={wallet}
+                  backendUrl={backendUrl}
+                  onNotification={showNotification}
+                />
+              )}
+            </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Lore NFT Gallery Modal */}
+      <LoreNFTGallery
+        wallet={wallet}
+        backendUrl={backendUrl}
+        isOpen={showLoreGallery}
+        onClose={() => setShowLoreGallery(false)}
+      />
     </div>
   );
 };
