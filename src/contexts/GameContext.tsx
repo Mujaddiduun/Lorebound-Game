@@ -132,8 +132,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-
-    try {
       const quest = await honeycombService.startQuest(questId, state.player.wallet);
       dispatch({ type: 'SET_CURRENT_QUEST', payload: quest });
       dispatch({ type: 'SHOW_QUEST_MODAL', payload: true });

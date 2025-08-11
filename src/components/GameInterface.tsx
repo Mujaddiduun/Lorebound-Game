@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useGame } from '../contexts/GameContext';
-import { Map, User, Scroll, Loader } from 'lucide-react';
+import { Map, User, Scroll, Loader, Trophy, Users } from 'lucide-react';
 import { GameCanvas } from './GameCanvas';
 import { QuestPanel } from './QuestPanel';
 import { PlayerProfile } from './PlayerProfile';
 import { WalletButton } from './WalletButton';
 import ZoneModal from './ZoneModal';
+import { LeaderboardModal } from './LeaderboardModal';
 import { Zone } from '../types/game';
 
 export function GameInterface() {
   const { state, selectZone, showQuestModal, showProfileModal } = useGame();
   const [isProfileModalOpen, showProfileModalState] = useState(false);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   if (state.isLoading) {
     return (
@@ -44,10 +46,26 @@ export function GameInterface() {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => showProfileModalState(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-emerald-500/25"
             >
               <User className="w-4 h-4" />
-              <span className="text-white">Profile</span>
+              <span>Profile</span>
+            </button>
+
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-yellow-500/25"
+            >
+              <Trophy className="w-4 h-4" />
+              <span>Leaderboard</span>
+            </button>
+
+            <button
+              onClick={() => {/* Add guild modal */}}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-pink-500/25"
+            >
+              <Users className="w-4 h-4" />
+              <span>Guild</span>
             </button>
             <WalletButton />
           </div>
@@ -146,6 +164,10 @@ export function GameInterface() {
           onClose={() => setSelectedZone(null)}
         />
       )}
+      <LeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
     </div>
   );
 }
