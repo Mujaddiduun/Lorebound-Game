@@ -69,3 +69,64 @@ export function useWallet() {
   }
   return context;
 }
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface WalletContextType {
+  connected: boolean;
+  publicKey: string | null;
+  connect: () => void;
+  disconnect: () => void;
+}
+
+const WalletContext = createContext<WalletContextType | undefined>(undefined);
+
+export function WalletProvider({ children }: { children: React.ReactNode }) {
+  const [connected, setConnected] = useState(false);
+  const [publicKey, setPublicKey] = useState<string | null>(null);
+
+  const connect = () => {
+    // Mock wallet connection
+    const mockAddress = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
+    setPublicKey(mockAddress);
+    setConnected(true);
+    localStorage.setItem('wallet-connected', 'true');
+    localStorage.setItem('wallet-address', mockAddress);
+  };
+
+  const disconnect = () => {
+    setPublicKey(null);
+    setConnected(false);
+    localStorage.removeItem('wallet-connected');
+    localStorage.removeItem('wallet-address');
+  };
+
+  useEffect(() => {
+    // Check for saved wallet connection
+    const wasConnected = localStorage.getItem('wallet-connected');
+    const savedAddress = localStorage.getItem('wallet-address');
+    
+    if (wasConnected && savedAddress) {
+      setPublicKey(savedAddress);
+      setConnected(true);
+    }
+  }, []);
+
+  return (
+    <WalletContext.Provider value={{
+      connected,
+      publicKey,
+      connect,
+      disconnect,
+    }}>
+      {children}
+    </WalletContext.Provider>
+  );
+}
+
+export function useWallet() {
+  const context = useContext(WalletContext);
+  if (context === undefined) {
+    throw new Error('useWallet must be used within a WalletProvider');
+  }
+  return context;
+}

@@ -182,3 +182,135 @@ export function GameCanvas() {
     </div>
   );
 }
+import React, { useRef, useEffect } from 'react';
+import { useGame } from '../contexts/GameContext';
+import { Zone } from '../types/game';
+
+interface GameCanvasProps {
+  onZoneClick: (zoneId: string) => void;
+}
+
+export function GameCanvas({ onZoneClick }: GameCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { state } = useGame();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size
+    canvas.width = 800;
+    canvas.height = 500;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#1e1b4b');
+    gradient.addColorStop(1, '#312e81');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw connection lines between zones
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+
+    const connections = [
+      ['forest_echoes', 'crystal_caverns'],
+      ['crystal_caverns', 'shadow_peaks'],
+      ['shadow_peaks', 'ethereal_gardens'],
+      ['forest_echoes', 'ethereal_gardens']
+    ];
+
+    connections.forEach(([from, to]) => {
+      const fromZone = state.zones.find(z => z.id === from);
+      const toZone = state.zones.find(z => z.id === to);
+      
+      if (fromZone && toZone && fromZone.isUnlocked && toZone.isUnlocked) {
+        ctx.beginPath();
+        ctx.moveTo(fromZone.x, fromZone.y);
+        ctx.lineTo(toZone.x, toZone.y);
+        ctx.stroke();
+      }
+    });
+
+    // Draw zones
+    state.zones.forEach((zone) => {
+      drawZone(ctx, zone, state.player?.currentZone === zone.id);
+    });
+
+  }, [state.zones, state.player?.currentZone]);
+
+  const drawZone = (ctx: CanvasRenderingContext2D, zone: Zone, isCurrentZone: boolean) => {
+    const radius = isCurrentZone ? 35 : 25;
+    
+    // Zone circle
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y, radius, 0, 2 * Math.PI);
+    
+    if (zone.isUnlocked) {
+      ctx.fillStyle = zone.color;
+      ctx.shadowColor = zone.color;
+      ctx.shadowBlur = isCurrentZone ? 20 : 10;
+    } else {
+      ctx.fillStyle = '#4b5563';
+      ctx.shadowBlur = 0;
+    }
+    
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Border
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = isCurrentZone ? '#ffffff' : zone.isUnlocked ? '#ffffff80' : '#6b7280';
+    ctx.lineWidth = isCurrentZone ? 3 : 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+
+    // Zone name
+    ctx.fillStyle = '#ffffff';
+    ctx.font = zone.isUnlocked ? '14px Inter' : '12px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(zone.name, zone.x, zone.y + radius + 20);
+
+    // Lock icon for locked zones
+    if (!zone.isUnlocked) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '16px Inter';
+      ctx.fillText('🔒', zone.x, zone.y + 5);
+    }
+  };
+
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Check if click is within any zone
+    state.zones.forEach((zone) => {
+      const distance = Math.sqrt((x - zone.x) ** 2 + (y - zone.y) ** 2);
+      if (distance <= 35 && zone.isUnlocked) {
+        onZoneClick(zone.id);
+      }
+    });
+  };
+
+  return (
+    <div className="flex justify-center">
+      <canvas
+        ref={canvasRef}
+        className="border border-white/20 rounded-lg cursor-pointer"
+        onClick={handleCanvasClick}
+      />
+    </div>
+  );
+}

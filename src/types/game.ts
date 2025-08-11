@@ -80,3 +80,72 @@ export interface GameState {
   showStoryModal: boolean;
   currentStoryChoice: StoryChoice | null;
 }
+export interface Player {
+  wallet: string;
+  xp: number;
+  level: number;
+  currentZone: string;
+  traits: PlayerTrait[];
+  completedQuests: string[];
+  unlockedZones: string[];
+  storyChoices: StoryChoice[];
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  objectives: string[];
+  rewards: QuestReward[];
+  zoneId?: string;
+  requiredLevel?: number;
+  requiredTraits?: string[];
+  storyChoices?: StoryChoice[];
+}
+
+export interface QuestReward {
+  type: 'xp' | 'trait' | 'zone_unlock' | 'nft';
+  value: string | number;
+  description?: string;
+}
+
+export interface PlayerTrait {
+  id: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  assignedAt: number;
+}
+
+export interface Zone {
+  id: string;
+  name: string;
+  description: string;
+  isUnlocked: boolean;
+  x: number;
+  y: number;
+  color: string;
+}
+
+export interface StoryChoice {
+  id: string;
+  text: string;
+  description: string;
+  consequences: {
+    xp?: number;
+    traits?: string[];
+    unlockZones?: string[];
+  };
+}
+
+export interface GameState {
+  player: Player | null;
+  currentQuest: Quest | null;
+  availableQuests: Quest[];
+  zones: Zone[];
+  isLoading: boolean;
+  showQuestModal: boolean;
+  showProfileModal: boolean;
+  showStoryModal: boolean;
+  currentStoryChoice: StoryChoice | null;
+}
