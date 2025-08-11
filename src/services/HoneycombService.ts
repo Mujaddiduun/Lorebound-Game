@@ -1,10 +1,13 @@
 
 import { HiveControl } from '@honeycomb-protocol/hive-control';
 import { Connection, PublicKey } from '@solana/web3.js';
+import { Player, Quest, PlayerTrait, StoryChoice } from '../types/game';
+import { gameData } from '../data/gameData';
 
 class HoneycombService {
   private hiveControl: HiveControl | null = null;
   private connection: Connection;
+  private initialized: boolean = false;
 
   constructor() {
     // Use Solana Devnet for testing
@@ -14,103 +17,183 @@ class HoneycombService {
   async initialize(wallet: any) {
     try {
       this.hiveControl = new HiveControl(this.connection, wallet);
+      this.initialized = true;
       return true;
     } catch (error) {
       console.error('Failed to initialize Honeycomb:', error);
+      this.initialized = false;
       return false;
     }
   }
 
-  async createPlayer(walletAddress: string) {
-    if (!this.hiveControl) throw new Error('Honeycomb not initialized');
+  async getOrCreatePlayer(walletAddress: string): Promise<Player> {
+    try {
+      let player = await this.getPlayer(walletAddress);
+      if (!player) {
+        player = await this.createPlayer(walletAddress);
+      }
+      return player;
+    } catch (error) {
+      console.error('Error getting or creating player:', error);
+      return this.createDefaultPlayer(walletAddress);
+    }
+  }
+
+  private createDefaultPlayer(walletAddress: string): Player {
+    return {
+      wallet: walletAddress,
+      xp: 0,
+      level: 1,
+      currentZone: 'forest_echoes',
+      traits: [],
+      completedQuests: [],
+      unlockedZones: ['forest_echoes'],
+      storyChoices: []
+    };
+  }
+
+  async createPlayer(walletAddress: string): Promise<Player> {
+    if (!this.initialized) {
+      console.warn('Honeycomb not initialized, creating mock player');
+      return this.createDefaultPlayer(walletAddress);
+    }
     
     try {
-      // Create player profile on-chain
-      const playerData = {
-        wallet: new PublicKey(walletAddress),
-        experience: 0,
+      const playerData: Player = {
+        wallet: walletAddress,
+        xp: 0,
         level: 1,
         currentZone: 'forest_echoes',
         traits: [],
-        completedQuests: []
+        completedQuests: [],
+        unlockedZones: ['forest_echoes'],
+        storyChoices: []
       };
       
       // Store player data using Honeycomb
-      await this.hiveControl.createProfile(playerData);
+      if (this.hiveControl) {
+        await this.hiveControl.createProfile({
+          wallet: new PublicKey(walletAddress),
+          ...playerData
+        });
+      }
+      
       return playerData;
     } catch (error) {
       console.error('Error creating player:', error);
-      throw error;
+      return this.createDefaultPlayer(walletAddress);
     }
   }
 
-  async getPlayer(walletAddress: string) {
-    if (!this.hiveControl) throw new Error('Honeycomb not initialized');
+  async getPlayer(walletAddress: string): Promise<Player | null> {
+    if (!this.initialized) {
+      console.warn('Honeycomb not initialized, returning null');
+      return null;
+    }
     
     try {
+      if (!this.hiveControl) return null;
+      
       const profile = await this.hiveControl.getProfile(new PublicKey(walletAddress));
-      return profile;
+      return profile as Player;
     } catch (error) {
       console.error('Error fetching player:', error);
-      // Return default player if not found
-      return this.createPlayer(walletAddress);
+      return null;
     }
   }
 
-  async startQuest(questId: string, walletAddress: string) {
-    if (!this.hiveControl) throw new Error('Honeycomb not initialized');
+  async getAvailableQuests(player: Player): Promise<Quest[]> {
+    const allQuests = gameData.quests;
     
-    try {
-      const mission = await this.hiveControl.createMission({
-        id: questId,
-        player: new PublicKey(walletAddress),
-        status: 'active',
-        objectives: [],
-        startTime: Date.now()
-      });
+    return allQuests.filter(quest => {
+      // Check if quest is already completed
+      if (player.completedQuests.includes(quest.id)) return false;
       
-      return mission;
+      // Check level requirement
+      if (quest.requiredLevel && player.level < quest.requiredLevel) return false;
+      
+      // Check trait requirements
+      if (quest.requiredTraits) {
+        const playerTraitIds = player.traits.map(t => t.id);
+        const hasRequiredTraits = quest.requiredTraits.every(traitId => 
+          playerTraitIds.includes(traitId)
+        );
+        if (!hasRequiredTraits) return false;
+      }
+      
+      // Check zone requirements
+      if (quest.zoneId && !player.unlockedZones.includes(quest.zoneId)) return false;
+      
+      return true;
+    });
+  }
+
+  async startQuest(questId: string, walletAddress: string): Promise<Quest> {
+    try {
+      const quest = gameData.quests.find(q => q.id === questId);
+      if (!quest) throw new Error('Quest not found');
+
+      if (this.hiveControl) {
+        await this.hiveControl.createMission({
+          id: questId,
+          player: new PublicKey(walletAddress),
+          status: 'active',
+          objectives: quest.objectives || [],
+          startTime: Date.now()
+        });
+      }
+      
+      return quest;
     } catch (error) {
       console.error('Error starting quest:', error);
-      throw error;
+      const quest = gameData.quests.find(q => q.id === questId);
+      if (!quest) throw new Error('Quest not found');
+      return quest;
     }
   }
 
-  async completeQuest(questId: string, walletAddress: string, choices: any[] = []) {
-    if (!this.hiveControl) throw new Error('Honeycomb not initialized');
-    
+  async completeQuest(questId: string, walletAddress: string, choices: StoryChoice[] = []): Promise<any[]> {
     try {
       // Mark mission as complete
-      await this.hiveControl.completeMission(questId, new PublicKey(walletAddress));
+      if (this.hiveControl) {
+        await this.hiveControl.completeMission(questId, new PublicKey(walletAddress));
+      }
       
       // Process rewards (XP, traits, etc.)
       const questData = this.getQuestData(questId);
+      const rewards: any[] = [];
+      
       if (questData) {
-        await this.addExperience(walletAddress, questData.rewards.find(r => r.type === 'xp')?.value || 0);
-        
-        // Add traits from quest rewards
-        const traitRewards = questData.rewards.filter(r => r.type === 'trait');
-        for (const trait of traitRewards) {
-          await this.assignTrait(walletAddress, trait.value);
+        // Add base quest rewards
+        for (const reward of questData.rewards) {
+          if (reward.type === 'xp') {
+            await this.addExperience(walletAddress, reward.value);
+            rewards.push(reward);
+          } else if (reward.type === 'trait') {
+            await this.assignTrait(walletAddress, reward.value);
+            rewards.push(reward);
+          }
         }
         
         // Process story choice consequences
         for (const choice of choices) {
           if (choice.consequences.xp) {
             await this.addExperience(walletAddress, choice.consequences.xp);
+            rewards.push({ type: 'xp', value: choice.consequences.xp });
           }
           if (choice.consequences.traits) {
             for (const traitId of choice.consequences.traits) {
               await this.assignTrait(walletAddress, traitId);
+              rewards.push({ type: 'trait', value: traitId });
             }
           }
         }
       }
       
-      return true;
+      return rewards;
     } catch (error) {
       console.error('Error completing quest:', error);
-      throw error;
+      return [];
     }
   }
 
@@ -170,9 +253,23 @@ class HoneycombService {
 
   // Helper method to get quest data from local definitions
   private getQuestData(questId: string) {
-    // Import your quest data here or fetch from gameData
-    // This is a placeholder - you'll need to import your actual quest definitions
-    return null;
+    return gameData.quests.find(quest => quest.id === questId) || null;
+  }
+
+  async recordStoryChoice(questId: string, choice: StoryChoice, walletAddress: string): Promise<void> {
+    try {
+      if (this.hiveControl) {
+        await this.hiveControl.recordChoice({
+          questId,
+          choiceId: choice.id,
+          player: new PublicKey(walletAddress),
+          timestamp: Date.now()
+        });
+      }
+      console.log('Story choice recorded:', choice.id);
+    } catch (error) {
+      console.error('Error recording story choice:', error);
+    }
   }
 
   // Optional: NFT minting for lore collectibles
@@ -190,4 +287,6 @@ class HoneycombService {
   }
 }
 
-export const honeycombService = new HoneycombService();
+const honeycombService = new HoneycombService();
+
+export { HoneycombService, honeycombService };

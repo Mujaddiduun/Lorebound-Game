@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { GameState, Player, Quest, Zone, StoryChoice } from '../types/game';
-import { HoneycombService } from '../services/HoneycombService';
+import { honeycombService } from '../services/HoneycombService';
 import { gameData } from '../data/gameData';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -98,12 +98,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
+      // Initialize Honeycomb service first
+      await honeycombService.initialize(wallet);
+      
       // Initialize player with Honeycomb Protocol
-      const playerData = await HoneycombService.getOrCreatePlayer(wallet.publicKey.toString());
+      const playerData = await honeycombService.getOrCreatePlayer(wallet.publicKey.toString());
       dispatch({ type: 'SET_PLAYER', payload: playerData });
 
       // Load available quests
-      const quests = await HoneycombService.getAvailableQuests(playerData);
+      const quests = await honeycombService.getAvailableQuests(playerData);
       dispatch({ type: 'SET_AVAILABLE_QUESTS', payload: quests });
 
       // Update zones based on player progress
@@ -126,7 +129,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      const quest = await HoneycombService.startQuest(questId, state.player.wallet);
+      const quest = await honeycombService.startQuest(questId, state.player.wallet);
       dispatch({ type: 'SET_CURRENT_QUEST', payload: quest });
       dispatch({ type: 'SHOW_QUEST_MODAL', payload: true });
     } catch (error) {
@@ -142,11 +145,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      const rewards = await HoneycombService.completeQuest(questId, state.player.wallet, choices);
+      const rewards = await honeycombService.completeQuest(questId, state.player.wallet, choices);
       dispatch({ type: 'COMPLETE_QUEST', payload: { questId, rewards } });
 
       // Refresh player data
-      const updatedPlayer = await HoneycombService.getOrCreatePlayer(state.player.wallet);
+      const updatedPlayer = await honeycombService.getOrCreatePlayer(state.player.wallet);
       dispatch({ type: 'SET_PLAYER', payload: updatedPlayer });
 
     } catch (error) {
@@ -184,7 +187,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      await HoneycombService.recordStoryChoice(state.currentQuest.id, choice, state.player.wallet);
+      await honeycombService.recordStoryChoice(state.currentQuest.id, choice, state.player.wallet);
       dispatch({ type: 'SHOW_STORY_MODAL', payload: { show: false } });
     } catch (error) {
       console.error('Failed to record story choice:', error);
