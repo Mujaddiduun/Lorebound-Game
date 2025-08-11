@@ -7,6 +7,7 @@ import { PlayerProfile } from './PlayerProfile';
 import { WalletButton } from './WalletButton';
 import ZoneModal from './ZoneModal';
 import { LeaderboardModal } from './LeaderboardModal';
+import { AchievementSystem } from './AchievementSystem';
 import { Zone } from '../types/game';
 
 export function GameInterface() {
@@ -145,6 +146,12 @@ export function GameInterface() {
                 <p className="text-gray-400 text-sm">No quests available in this zone.</p>
               )}
             </div>
+
+            {/* Achievement System */}
+            <AchievementSystem />
+          </div>
+        </div>
+      </main>
           </div>
         </div>
       </main>

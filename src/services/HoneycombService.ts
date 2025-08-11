@@ -4,13 +4,32 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { Player, Quest, PlayerTrait, StoryChoice } from '../types/game';
 import { gameData } from '../data/gameData';
 
+/**
+ * HoneycombService - Core blockchain integration for Lorebound
+ * 
+ * This service acts as the primary interface between the game and Honeycomb Protocol,
+ * managing all on-chain operations including:
+ * - Player profile creation and management
+ * - Quest/mission tracking and completion
+ * - Character trait assignment and evolution
+ * - XP progression and level advancement
+ * - Community features and social interactions
+ * - Achievement system and NFT rewards
+ * 
+ * @author Lorebound Team
+ * @version 1.0.0
+ */
 class HoneycombService {
   private hiveControl: HiveControl | null = null;
   private connection: Connection;
   private initialized: boolean = false;
 
+  /**
+   * Initialize the Honeycomb service with Solana Devnet connection
+   * Using Devnet allows for safe testing without mainnet costs
+   */
   constructor() {
-    // Use Solana Devnet for testing
+    // Use Solana Devnet for testing - free transactions and safe environment
     this.connection = new Connection('https://api.devnet.solana.com');
   }
 
@@ -570,8 +589,123 @@ class HoneycombService {
     }
   }
 
-      return null;
+  // Helper method to get quest data from local definitions
+  private getQuestData(questId: string) {
+    return gameData.quests.find(quest => quest.id === questId) || null;
+  }
+
+  async recordStoryChoice(questId: string, choice: StoryChoice, walletAddress: string): Promise<void> {
+    try {
+      if (this.hiveControl) {
+        await this.hiveControl.recordChoice({
+          questId,
+          choiceId: choice.id,
+          player: new PublicKey(walletAddress),
+          timestamp: Date.now()
+        });
+      }
+      console.log('Story choice recorded:', choice.id);
+    } catch (error) {
+      console.error('Error recording story choice:', error);
     }
+  }
+
+  // NFT minting for lore collectibles using Metaplex
+  async mintLoreNFT(walletAddress: string, questId: string, metadata: any) {
+    if (!this.hiveControl) throw new Error('Honeycomb not initialized');
+    
+    try {
+      // Create NFT metadata following Metaplex standards
+      const nftMetadata = {
+        name: `${metadata.questTitle} - Lore Fragment`,
+        symbol: 'LORE',
+        description: `A permanent record of completing ${metadata.questTitle} in the mystical world of Lorebound.`,
+        image: `https://api.lorebound.game/nft/${questId}.png`, // Your hosted NFT images
+        attributes: [
+          {
+            trait_type: 'Quest',
+            value: metadata.questTitle
+          },
+          {
+            trait_type: 'Zone',
+            value: metadata.zoneName
+          },
+          {
+            trait_type: 'Completion Date',
+            value: new Date().toISOString()
+          },
+          {
+            trait_type: 'Player Level',
+            value: metadata.playerLevel?.toString() || '1'
+          },
+          {
+            trait_type: 'Rarity',
+            value: metadata.rarity || 'Common'
+          }
+        ],
+        properties: {
+          category: 'image',
+          files: [
+            {
+              uri: `https://api.lorebound.game/nft/${questId}.png`,
+              type: 'image/png'
+            }
+          ]
+        }
+      };
+
+      // Upload metadata to IPFS or Arweave
+      const metadataUri = await this.uploadMetadata(nftMetadata);
+      
+      // Use Metaplex SDK to mint NFT
+      const mintResult = await this.mintWithMetaplex(
+        new PublicKey(walletAddress),
+        metadataUri,
+        nftMetadata.name,
+        nftMetadata.symbol
+      );
+
+      // Record NFT mint in Honeycomb for quest completion tracking
+      await this.hiveControl.recordNFTMint({
+        questId,
+        player: new PublicKey(walletAddress),
+        mintAddress: mintResult.mintAddress,
+        metadataUri,
+        timestamp: Date.now()
+      });
+
+      console.log(`Minted Lore NFT for quest ${questId}:`, mintResult.mintAddress.toString());
+      return {
+        mintAddress: mintResult.mintAddress,
+        metadataUri,
+        transactionSignature: mintResult.signature
+      };
+    } catch (error) {
+      console.error('Error minting NFT:', error);
+      throw error;
+    }
+  }
+
+  private async uploadMetadata(metadata: any): Promise<string> {
+    // Implementation for IPFS/Arweave upload
+    // For demo purposes, return a mock URI
+    return `https://gateway.pinata.cloud/ipfs/${Date.now()}.json`;
+  }
+
+  private async mintWithMetaplex(
+    recipient: PublicKey,
+    metadataUri: string,
+    name: string,
+    symbol: string
+  ) {
+    // Mock Metaplex minting for demo
+    // In production, use actual Metaplex SDK
+    return {
+      mintAddress: new PublicKey('11111111111111111111111111111111'), // Mock address
+      signature: 'mock_signature_' + Date.now()
+    };
+  }
+}
   }
 
   // Helper method to get quest data from local definitions
