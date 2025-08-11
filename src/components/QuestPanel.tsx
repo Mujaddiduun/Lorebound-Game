@@ -155,7 +155,7 @@ export function QuestPanel() {
 }
 import React, { useState } from 'react';
 import { useGame } from '../contexts/GameContext';
-import { X, Star, Award, MapPin, ChevronRight, CheckCircle, Clock, Zap } from 'lucide-react';
+import { X, Star, Award, MapPin, ChevronRight, CheckCircle, Clock, Zap, Gift } from 'lucide-react';
 
 export function QuestPanel() {
   const { state, showQuestModal, startQuest, completeQuest, showStoryModal, completeObjective } = useGame();

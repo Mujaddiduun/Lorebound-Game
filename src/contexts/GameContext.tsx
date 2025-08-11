@@ -124,9 +124,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   };
 
   const startQuest = async (questId: string) => {
-    if (!state.player) return;
+    if (!state.player) {
+      console.error('No player found when trying to start quest');
+      return;
+    }
 
     dispatch({ type: 'SET_LOADING', payload: true });
+    
+    try {
 
     try {
       const quest = await honeycombService.startQuest(questId, state.player.wallet);
