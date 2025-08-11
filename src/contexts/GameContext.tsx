@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { GameState, Player, Quest, Zone, StoryChoice } from '../types/game';
 import { HoneycombService } from '../services/HoneycombService';
 import { gameData } from '../data/gameData';
-import { useWallet } from './WalletContext';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 interface GameContextType {
   state: GameState;
@@ -57,20 +57,20 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SHOW_PROFILE_MODAL':
       return { ...state, showProfileModal: action.payload };
     case 'SHOW_STORY_MODAL':
-      return { 
-        ...state, 
+      return {
+        ...state,
         showStoryModal: action.payload.show,
         currentStoryChoice: action.payload.choice || null
       };
     case 'COMPLETE_QUEST':
       if (!state.player) return state;
-      
+
       const updatedPlayer = {
         ...state.player,
         completedQuests: [...state.player.completedQuests, action.payload.questId],
         xp: state.player.xp + (action.payload.rewards.find(r => r.type === 'xp')?.value || 0),
       };
-      
+
       return {
         ...state,
         player: updatedPlayer,
@@ -96,23 +96,23 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!wallet?.publicKey) return;
 
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
       // Initialize player with Honeycomb Protocol
       const playerData = await HoneycombService.getOrCreatePlayer(wallet.publicKey.toString());
       dispatch({ type: 'SET_PLAYER', payload: playerData });
-      
+
       // Load available quests
       const quests = await HoneycombService.getAvailableQuests(playerData);
       dispatch({ type: 'SET_AVAILABLE_QUESTS', payload: quests });
-      
+
       // Update zones based on player progress
       const updatedZones = gameData.zones.map(zone => ({
         ...zone,
         isUnlocked: playerData.unlockedZones.includes(zone.id)
       }));
       dispatch({ type: 'UPDATE_ZONES', payload: updatedZones });
-      
+
     } catch (error) {
       console.error('Failed to initialize player:', error);
     } finally {
@@ -124,7 +124,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!state.player) return;
 
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
       const quest = await HoneycombService.startQuest(questId, state.player.wallet);
       dispatch({ type: 'SET_CURRENT_QUEST', payload: quest });
@@ -140,15 +140,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!state.player) return;
 
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
       const rewards = await HoneycombService.completeQuest(questId, state.player.wallet, choices);
       dispatch({ type: 'COMPLETE_QUEST', payload: { questId, rewards } });
-      
+
       // Refresh player data
       const updatedPlayer = await HoneycombService.getOrCreatePlayer(state.player.wallet);
       dispatch({ type: 'SET_PLAYER', payload: updatedPlayer });
-      
+
     } catch (error) {
       console.error('Failed to complete quest:', error);
     } finally {
@@ -158,7 +158,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const selectZone = (zoneId: string) => {
     if (!state.player) return;
-    
+
     const zone = state.zones.find(z => z.id === zoneId);
     if (zone && zone.isUnlocked) {
       const updatedPlayer = { ...state.player, currentZone: zoneId };
@@ -182,7 +182,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!state.player || !state.currentQuest) return;
 
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
       await HoneycombService.recordStoryChoice(state.currentQuest.id, choice, state.player.wallet);
       dispatch({ type: 'SHOW_STORY_MODAL', payload: { show: false } });
