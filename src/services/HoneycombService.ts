@@ -397,7 +397,9 @@ class HoneycombService {
       return mission;
     } catch (error) {
       console.error('Error fetching mission status:', error);
-
+      return null;
+    }
+  }
 
   // Community and Social Features
   async getGlobalLeaderboard(limit: number = 10) {
