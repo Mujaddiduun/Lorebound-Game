@@ -9,7 +9,7 @@
 
 ## 🎮 Live Demo
 
-**[Play Lorebound →](https://lorebound.replit.app)** _(Solana Devnet)_
+**[Play Lorebound →](https://lorebound.netlify.app)** _(Solana Devnet)_
 
 > Connect your wallet and experience the future of on-chain gaming!
 
@@ -187,7 +187,7 @@ await honeycombService.joinGuild(guildId, playerWallet);
 ### **Quick Start**
 ```bash
 # 1. Clone and install
-git clone <repository-url>
+git clone https://github.com/Yusasive/loredbound-game
 cd lorebound
 npm install
 
@@ -341,8 +341,8 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 **🌟 Ready to Begin Your Legend? 🌟**
 
-**[Connect Your Wallet & Play Now →](https://lorebound.replit.app)**
+**[Connect Your Wallet & Play Now →](https://lorebound.netlify.app)**
 
-*Built with ❤️ for the Solana ecosystem*
+*Built by Yusasive for the Solana ecosystem*
 
 </div>
