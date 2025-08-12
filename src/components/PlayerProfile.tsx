@@ -1,6 +1,5 @@
-import React from 'react';
-import { useGame } from '../contexts/GameContext';
-import { X, Star, Award, MapPin, Calendar } from 'lucide-react';
+import { useGame } from "../contexts/GameContext";
+import { X, Star, Award, MapPin, Calendar } from "lucide-react";
 
 export function PlayerProfile() {
   const { state, showProfileModal } = useGame();
@@ -9,21 +8,31 @@ export function PlayerProfile() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'border-gray-400 bg-gray-400/10';
-      case 'rare': return 'border-blue-400 bg-blue-400/10';
-      case 'epic': return 'border-purple-400 bg-purple-400/10';
-      case 'legendary': return 'border-amber-400 bg-amber-400/10';
-      default: return 'border-gray-400 bg-gray-400/10';
+      case "common":
+        return "border-gray-400 bg-gray-400/10";
+      case "rare":
+        return "border-blue-400 bg-blue-400/10";
+      case "epic":
+        return "border-purple-400 bg-purple-400/10";
+      case "legendary":
+        return "border-amber-400 bg-amber-400/10";
+      default:
+        return "border-gray-400 bg-gray-400/10";
     }
   };
 
   const getRarityTextColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'text-gray-400';
-      case 'rare': return 'text-blue-400';
-      case 'epic': return 'text-purple-400';
-      case 'legendary': return 'text-amber-400';
-      default: return 'text-gray-400';
+      case "common":
+        return "text-gray-400";
+      case "rare":
+        return "text-blue-400";
+      case "epic":
+        return "text-purple-400";
+      case "legendary":
+        return "text-amber-400";
+      default:
+        return "text-gray-400";
     }
   };
 
@@ -34,7 +43,8 @@ export function PlayerProfile() {
   const getProgressToNextLevel = () => {
     const xpForNext = getXpForNextLevel(state.player!.level + 1);
     const xpForCurrent = getXpForNextLevel(state.player!.level);
-    const progress = ((state.player!.xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100;
+    const progress =
+      ((state.player!.xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100;
     return Math.max(0, Math.min(100, progress));
   };
 
@@ -56,24 +66,40 @@ export function PlayerProfile() {
           {/* Character Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
-              <h3 className="text-xl font-bold text-white mb-4">Character Stats</h3>
+              <h3 className="text-xl font-bold text-white mb-4">
+                Character Stats
+              </h3>
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <div className="text-gray-400 text-sm mb-1">Level</div>
-                    <div className="text-2xl font-bold text-amber-400">{state.player.level}</div>
+                    <div className="text-2xl font-bold text-amber-400">
+                      {state.player.level}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-400 text-sm mb-1">Experience Points</div>
-                    <div className="text-2xl font-bold text-emerald-400">{state.player.xp}</div>
+                    <div className="text-gray-400 text-sm mb-1">
+                      Experience Points
+                    </div>
+                    <div className="text-2xl font-bold text-emerald-400">
+                      {state.player.xp}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-400 text-sm mb-1">Completed Quests</div>
-                    <div className="text-2xl font-bold text-blue-400">{state.player.completedQuests.length}</div>
+                    <div className="text-gray-400 text-sm mb-1">
+                      Completed Quests
+                    </div>
+                    <div className="text-2xl font-bold text-blue-400">
+                      {state.player.completedQuests.length}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-400 text-sm mb-1">Unlocked Zones</div>
-                    <div className="text-2xl font-bold text-purple-400">{state.player.unlockedZones.length}</div>
+                    <div className="text-gray-400 text-sm mb-1">
+                      Unlocked Zones
+                    </div>
+                    <div className="text-2xl font-bold text-purple-400">
+                      {state.player.unlockedZones.length}
+                    </div>
                   </div>
                 </div>
 
@@ -94,16 +120,20 @@ export function PlayerProfile() {
             </div>
 
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">Current Location</h3>
+              <h3 className="text-xl font-bold text-white mb-4">
+                Current Location
+              </h3>
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex items-center mb-3">
                   <MapPin className="w-5 h-5 text-amber-400 mr-2" />
                   <span className="text-white font-medium">
-                    {state.zones.find(z => z.id === state.player?.currentZone)?.name || 'Unknown'}
+                    {state.zones.find((z) => z.id === state.player?.currentZone)
+                      ?.name || "Unknown"}
                   </span>
                 </div>
                 <p className="text-gray-400 text-sm">
-                  {state.zones.find(z => z.id === state.player?.currentZone)?.description || 'No description available'}
+                  {state.zones.find((z) => z.id === state.player?.currentZone)
+                    ?.description || "No description available"}
                 </p>
               </div>
             </div>
@@ -124,11 +154,15 @@ export function PlayerProfile() {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="text-white font-medium">{trait.name}</h4>
-                      <span className={`text-xs px-2 py-1 rounded-full ${getRarityTextColor(trait.rarity)} bg-current/20`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${getRarityTextColor(trait.rarity)} bg-current/20`}
+                      >
                         {trait.rarity}
                       </span>
                     </div>
-                    <p className="text-gray-300 text-sm mb-3">{trait.description}</p>
+                    <p className="text-gray-300 text-sm mb-3">
+                      {trait.description}
+                    </p>
                     <div className="flex items-center text-xs text-gray-400">
                       <Calendar className="w-3 h-3 mr-1" />
                       Earned: {new Date(trait.assignedAt).toLocaleDateString()}
@@ -139,7 +173,10 @@ export function PlayerProfile() {
             ) : (
               <div className="bg-gray-800 rounded-lg p-8 text-center">
                 <Award className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400">No traits earned yet. Complete quests to gain character traits!</p>
+                <p className="text-gray-400">
+                  No traits earned yet. Complete quests to gain character
+                  traits!
+                </p>
               </div>
             )}
           </div>
@@ -154,9 +191,18 @@ export function PlayerProfile() {
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="space-y-3">
                   {state.player.completedQuests.map((questId, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-700 rounded">
-                      <span className="text-white">{questId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                      <span className="text-green-400 text-sm">✓ Completed</span>
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gray-700 rounded"
+                    >
+                      <span className="text-white">
+                        {questId
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </span>
+                      <span className="text-green-400 text-sm">
+                        ✓ Completed
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -164,7 +210,9 @@ export function PlayerProfile() {
             ) : (
               <div className="bg-gray-800 rounded-lg p-8 text-center">
                 <Star className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400">No quests completed yet. Start your adventure!</p>
+                <p className="text-gray-400">
+                  No quests completed yet. Start your adventure!
+                </p>
               </div>
             )}
           </div>

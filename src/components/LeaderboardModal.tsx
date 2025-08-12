@@ -1,7 +1,6 @@
-
-import React, { useEffect, useState } from 'react';
-import { honeycombService } from '../services/HoneycombService';
-import { Trophy, Users, TrendingUp, X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { honeycombService } from "../services/HoneycombService";
+import { Trophy, Users, TrendingUp, X } from "lucide-react";
 
 interface LeaderboardModalProps {
   isOpen: boolean;
@@ -31,12 +30,12 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
     try {
       const data = await honeycombService.getGlobalLeaderboard(10);
       setLeaderboard(data);
-      
+
       // Get current player's rank
-      const rank = await honeycombService.getPlayerRank('current_player');
+      const rank = await honeycombService.getPlayerRank("current_player");
       setPlayerRank(rank);
     } catch (error) {
-      console.error('Failed to load leaderboard:', error);
+      console.error("Failed to load leaderboard:", error);
     } finally {
       setLoading(false);
     }
@@ -47,9 +46,9 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
+    if (rank === 1) return "🥇";
+    if (rank === 2) return "🥈";
+    if (rank === 3) return "🥉";
     return `#${rank}`;
   };
 
@@ -63,7 +62,9 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <Trophy className="w-6 h-6 text-yellow-400" />
-              <h2 className="text-2xl font-bold text-white">Global Leaderboard</h2>
+              <h2 className="text-2xl font-bold text-white">
+                Global Leaderboard
+              </h2>
             </div>
             <button
               onClick={onClose}
@@ -80,7 +81,9 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
                 <span className="text-green-300 font-medium">Your Rank</span>
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 font-bold">#{playerRank}</span>
+                  <span className="text-green-400 font-bold">
+                    #{playerRank}
+                  </span>
                 </div>
               </div>
             </div>
@@ -115,17 +118,21 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
                     </div>
                     <div className="text-right">
                       <div className="flex space-x-1 mb-1">
-                        {entry.traits.slice(0, 3).map((trait, i) => (
+                        {entry.traits.slice(0, 3).map((i) => (
                           <span
                             key={i}
                             className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400"
                           />
                         ))}
                         {entry.traits.length > 3 && (
-                          <span className="text-xs text-gray-400">+{entry.traits.length - 3}</span>
+                          <span className="text-xs text-gray-400">
+                            +{entry.traits.length - 3}
+                          </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500">{entry.traits.length} traits</p>
+                      <p className="text-xs text-gray-500">
+                        {entry.traits.length} traits
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -137,7 +144,9 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
           <div className="mt-6 pt-4 border-t border-white/20">
             <div className="flex items-center justify-center space-x-2 text-gray-400">
               <Users className="w-4 h-4" />
-              <span className="text-sm">Join thousands of adventurers exploring Lorebound</span>
+              <span className="text-sm">
+                Join thousands of adventurers exploring Lorebound
+              </span>
             </div>
           </div>
         </div>

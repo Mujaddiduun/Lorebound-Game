@@ -16,9 +16,9 @@ export function WalletButton() {
         return;
       }
       await connect();
-      console.log('✅ Wallet connected successfully');
+      console.log(' Wallet connected successfully');
     } catch (error) {
-      console.error('❌ Wallet connection failed:', error);
+      console.error(' Wallet connection failed:', error);
       setConnectionError(error instanceof Error ? error.message : 'Failed to connect wallet');
     }
   };
@@ -29,9 +29,9 @@ export function WalletButton() {
       select(selectedWallet.adapter.name);
       setShowWalletOptions(false);
       await connect();
-      console.log('✅ Wallet connected:', selectedWallet.adapter.name);
+      console.log(' Wallet connected:', selectedWallet.adapter.name);
     } catch (error) {
-      console.error('❌ Failed to connect to', selectedWallet.adapter.name, error);
+      console.error(' Failed to connect to', selectedWallet.adapter.name, error);
       setConnectionError(`Failed to connect to ${selectedWallet.adapter.name}`);
     }
   };
@@ -42,7 +42,7 @@ export function WalletButton() {
       setConnectionError(null);
       console.log('🔌 Wallet disconnected');
     } catch (error) {
-      console.error('❌ Disconnect failed:', error);
+      console.error(' Disconnect failed:', error);
     }
   };
 
