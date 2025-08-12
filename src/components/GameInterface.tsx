@@ -152,9 +152,6 @@ export function GameInterface() {
           </div>
         </div>
       </main>
-          </div>
-        </div>
-      </main>
 
       {/* Modals */}
       {isProfileModalOpen && (

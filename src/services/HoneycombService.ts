@@ -589,11 +589,6 @@ class HoneycombService {
     }
   }
 
-  // Helper method to get quest data from local definitions
-  private getQuestData(questId: string) {
-    return gameData.quests.find(quest => quest.id === questId) || null;
-  }
-
   async recordStoryChoice(questId: string, choice: StoryChoice, walletAddress: string): Promise<void> {
     try {
       if (this.hiveControl) {
@@ -709,22 +704,6 @@ class HoneycombService {
   // Helper method to get quest data from local definitions
   private getQuestData(questId: string) {
     return gameData.quests.find(quest => quest.id === questId) || null;
-  }
-
-  async recordStoryChoice(questId: string, choice: StoryChoice, walletAddress: string): Promise<void> {
-    try {
-      if (this.hiveControl) {
-        await this.hiveControl.recordChoice({
-          questId,
-          choiceId: choice.id,
-          player: new PublicKey(walletAddress),
-          timestamp: Date.now()
-        });
-      }
-      console.log('Story choice recorded:', choice.id);
-    } catch (error) {
-      console.error('Error recording story choice:', error);
-    }
   }
 }
 
